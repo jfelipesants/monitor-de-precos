@@ -4,7 +4,7 @@
 
 **Web scraping + histórico de preços + alertas inteligentes por e-mail**
 
-[![CI](https://github.com/SEU-USUARIO/monitor-de-precos/actions/workflows/ci.yml/badge.svg)](https://github.com/SEU-USUARIO/monitor-de-precos/actions/workflows/ci.yml)
+[![CI](https://github.com/jfelipesants/monitor-de-precos/actions/workflows/ci.yml/badge.svg)](https://github.com/jfelipesants/monitor-de-precos/actions/workflows/ci.yml)
 ![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A522.12-339933?logo=nodedotjs&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
@@ -119,7 +119,7 @@ flowchart LR
 ### 1. Clonar e instalar
 
 ```bash
-git clone https://github.com/SEU-USUARIO/monitor-de-precos.git
+git clone https://github.com/jfelipesants/monitor-de-precos.git
 cd monitor-de-precos
 npm install
 ```
