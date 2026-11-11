@@ -169,12 +169,20 @@ export class PriceMonitor {
       }
       if (motivosAtivos.length === 0) return false;
 
+      // O gráfico do e-mail é um extra: se a consulta falhar, o alerta sai sem ele.
+      const historico = await this.historicoRepo.listarRecentes(produto.id, 14).catch((err) => {
+        log.warn({ err }, 'Não foi possível carregar o histórico para o gráfico do alerta');
+        return [];
+      });
+
       const { enviados } = await this.notificationService.notificar({
         produto,
         precoAtual: resultado.preco,
         precoOriginal: resultado.precoOriginal,
         motivos: motivosAtivos,
         estatisticas,
+        historico,
+        coletadoEm: this.relogio().toISOString(),
       });
 
       if (enviados.length === 0) {

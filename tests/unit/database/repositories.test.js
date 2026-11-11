@@ -186,6 +186,29 @@ describe('HistoricoRepository', () => {
     const est = await new HistoricoRepository(supabase.client).obterEstatisticas(ID);
     expect(est).toEqual({ amostras: 0, media: null, minimo: null, minimoHistorico: null });
   });
+
+  it('lista as coletas recentes da mais antiga para a mais nova', async () => {
+    const supabase = criarSupabaseMock().responder('historico_precos', {
+      data: [
+        { preco: '90.00', coletado_em: '2026-11-11T00:00:00Z' },
+        { preco: '100.00', coletado_em: '2026-11-10T00:00:00Z' },
+      ],
+      error: null,
+    });
+    const lista = await new HistoricoRepository(supabase.client).listarRecentes(ID, 5);
+
+    expect(lista).toEqual([
+      { preco: 100, coletado_em: '2026-11-10T00:00:00Z' },
+      { preco: 90, coletado_em: '2026-11-11T00:00:00Z' },
+    ]);
+    expect(supabase.chamadas[0].ops).toContainEqual(['order', 'coletado_em', { ascending: false }]);
+    expect(supabase.chamadas[0].ops).toContainEqual(['limit', 5]);
+  });
+
+  it('lista vazia quando não há coletas', async () => {
+    const supabase = criarSupabaseMock();
+    await expect(new HistoricoRepository(supabase.client).listarRecentes(ID)).resolves.toEqual([]);
+  });
 });
 
 describe('AlertaRepository', () => {

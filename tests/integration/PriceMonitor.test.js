@@ -9,6 +9,10 @@ import { criarLoggerFalso } from '../helpers/index.js';
  */
 
 const AGORA = new Date('2026-06-10T12:00:00Z');
+const HISTORICO_RECENTE = [
+  { preco: 1050, coletado_em: '2026-06-09T12:00:00Z' },
+  { preco: 1020, coletado_em: '2026-06-10T06:00:00Z' },
+];
 
 const produto = (id, extra = {}) => ({
   id,
@@ -44,6 +48,7 @@ function montarCenario({ produtos, precos, estatisticas, ultimoAlerta = null }) 
     registrar: vi.fn(async () => {
       ordem.push('registrar');
     }),
+    listarRecentes: vi.fn().mockResolvedValue(HISTORICO_RECENTE),
   };
   const alertaRepo = {
     ultimoAlerta: vi.fn().mockResolvedValue(ultimoAlerta),
@@ -125,7 +130,13 @@ describe('PriceMonitor (integração)', () => {
 
     expect(resumo.alertasEnviados).toBe(1);
     const alerta = cenario.notificationService.notificar.mock.calls[0][0];
-    expect(alerta).toMatchObject({ precoAtual: 980, produto: { id: 'a' } });
+    expect(alerta).toMatchObject({
+      precoAtual: 980,
+      produto: { id: 'a' },
+      historico: HISTORICO_RECENTE, // usado no gráfico do e-mail
+      coletadoEm: AGORA.toISOString(),
+    });
+    expect(cenario.historicoRepo.listarRecentes).toHaveBeenCalledWith('a', 14);
     expect(alerta.motivos.map((m) => m.tipo)).toEqual(['meta_atingida']);
     expect(cenario.alertaRepo.registrar).toHaveBeenCalledWith({
       produto_id: 'a',
@@ -134,6 +145,16 @@ describe('PriceMonitor (integração)', () => {
       preco_referencia: 1000,
       canais: ['email'],
     });
+  });
+
+  it('envia o alerta sem gráfico se o histórico não puder ser carregado', async () => {
+    cenario = montarCenario({ produtos: [produto('a', { preco_alvo: 1000 })], precos: { a: 980 } });
+    cenario.historicoRepo.listarRecentes.mockRejectedValue(new DatabaseError('timeout'));
+
+    const resumo = await cenario.monitor.executar();
+
+    expect(resumo.alertasEnviados).toBe(1);
+    expect(cenario.notificationService.notificar.mock.calls[0][0].historico).toEqual([]);
   });
 
   it('agrupa vários motivos em um único e-mail', async () => {

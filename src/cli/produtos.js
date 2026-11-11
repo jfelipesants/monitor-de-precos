@@ -121,9 +121,18 @@ async function main() {
 
     case 'test-email': {
       await app.emailChannel.verificar();
+      // Exemplo com 12 coletas (a cada 6h) descendo até cruzar a meta.
+      const precos = [
+        1799.9, 1799.9, 1749, 1769.9, 1719, 1689.9, 1659, 1679.9, 1599, 1579.9, 1549, 1399.9,
+      ];
+      const agora = Date.now();
+      const historico = precos.map((preco, i) => ({
+        preco,
+        coletado_em: new Date(agora - (precos.length - 1 - i) * 6 * 3_600_000).toISOString(),
+      }));
       await app.emailChannel.enviar({
         produto: {
-          nome: 'Produto de teste — Monitor de Preços',
+          nome: 'Produto de teste do Monitor de Preços',
           url: 'https://github.com',
           loja: 'kabum',
           preco_alvo: 1500,
@@ -131,14 +140,12 @@ async function main() {
         precoAtual: 1399.9,
         precoOriginal: 1799.9,
         motivos: [
-          {
-            tipo: 'meta_atingida',
-            descricao: 'O preço atingiu a sua meta (e-mail de teste)',
-            precoReferencia: 1500,
-            variacaoPercentual: -6.67,
-          },
+          { tipo: 'meta_atingida', precoReferencia: 1500, variacaoPercentual: -6.67 },
+          { tipo: 'menor_preco_historico', precoReferencia: 1549, variacaoPercentual: -9.63 },
         ],
-        estatisticas: { media: 1650, minimoHistorico: 1450 },
+        estatisticas: { media: 1665.6, minimoHistorico: 1549 },
+        historico,
+        coletadoEm: new Date(agora).toISOString(),
       });
       console.log(`✅ E-mail de teste enviado para ${config.EMAIL_TO}`);
       break;

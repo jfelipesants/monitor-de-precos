@@ -19,6 +19,28 @@ export class HistoricoRepository {
   }
 
   /**
+   * Últimas coletas de um produto, da mais antiga para a mais recente
+   * (usado no gráfico do e-mail de alerta).
+   * @param {string} produtoId
+   * @param {number} [limite]
+   * @returns {Promise<Array<{ preco: number, coletado_em: string }>>}
+   */
+  async listarRecentes(produtoId, limite = 14) {
+    const dados = await executar(
+      this.client
+        .from('historico_precos')
+        .select('preco, coletado_em')
+        .eq('produto_id', produtoId)
+        .order('coletado_em', { ascending: false })
+        .limit(limite),
+      'listar coletas recentes',
+    );
+    return (dados ?? [])
+      .map((r) => ({ preco: Number(r.preco), coletado_em: r.coletado_em }))
+      .reverse();
+  }
+
+  /**
    * Estatísticas da view `v_estatisticas_produto`.
    * @param {string} produtoId
    * @returns {Promise<{ amostras: number, media: number|null, minimo: number|null, minimoHistorico: number|null }>}
