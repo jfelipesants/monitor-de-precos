@@ -40,6 +40,50 @@ describe('KabumScraper', () => {
     });
   });
 
+  describe('layout atual (Next.js)', () => {
+    const paginaReal = lerFixture('kabum-nextdata.html');
+    const semNextData = paginaReal.replace(/<script id="__NEXT_DATA__"[\s\S]*?<\/script>/, '');
+    const semJsonLd = paginaReal.replace(
+      /<script type="application\/ld\+json">[\s\S]*?<\/script>/,
+      '',
+    );
+
+    const coletar = (html) =>
+      new KabumScraper({
+        httpClient: criarHttpMock({ status: 200, data: html }),
+        ...opcoesScraperTeste,
+      }).scrape(url);
+
+    it('lê o preço riscado ("de") nos dados internos __NEXT_DATA__', async () => {
+      await expect(coletar(paginaReal)).resolves.toEqual({
+        titulo: 'Console Sony PlayStation 5, SSD 825GB, Edição Digital',
+        preco: 4277.07,
+        precoOriginal: 4692.51,
+        disponivel: true,
+        moeda: 'BRL',
+      });
+    });
+
+    it('sem __NEXT_DATA__, lê o preço riscado pelo <span class="line-through">', async () => {
+      await expect(coletar(semNextData)).resolves.toMatchObject({
+        preco: 4277.07,
+        precoOriginal: 4692.51,
+      });
+    });
+
+    it('sem JSON-LD, usa o preço à vista (priceWithDiscount) do __NEXT_DATA__', async () => {
+      await expect(coletar(semJsonLd)).resolves.toMatchObject({
+        preco: 4277.07,
+        precoOriginal: 4692.51,
+      });
+    });
+
+    it('ignora __NEXT_DATA__ malformado sem quebrar', async () => {
+      const quebrado = paginaReal.replace('"props"', 'props quebrado');
+      await expect(coletar(quebrado)).resolves.toMatchObject({ preco: 4277.07 });
+    });
+  });
+
   it('atende apenas aos domínios da Kabum', () => {
     expect(KabumScraper.supports(url)).toBe(true);
     expect(KabumScraper.supports('https://www.amazon.com.br/dp/X')).toBe(false);
