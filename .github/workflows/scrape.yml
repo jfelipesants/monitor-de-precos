@@ -1,0 +1,46 @@
+name: Monitorar preços
+
+on:
+  schedule:
+    # A cada 6 horas (horário UTC). 09h, 15h, 21h e 03h no horário de Brasília.
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # permite rodar manualmente pela aba "Actions"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: monitor-precos
+  cancel-in-progress: false
+
+jobs:
+  monitorar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: 'Instalar navegador do Playwright (lojas dinâmicas, ex.: Amazon)'
+        run: npx playwright install --with-deps chromium
+
+      - name: Executar ciclo de monitoramento
+        run: npm run monitor:once
+        env:
+          NODE_ENV: production
+          LOG_LEVEL: info
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST || 'smtp.gmail.com' }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT || '465' }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}

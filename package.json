@@ -1,0 +1,55 @@
+{
+  "name": "monitor-de-precos",
+  "version": "1.0.0",
+  "description": "Sistema de monitoramento de preços com web scraping, histórico no Supabase (PostgreSQL) e alertas por e-mail.",
+  "type": "module",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "start:now": "node src/index.js --now",
+    "monitor:once": "node src/run-once.js",
+    "produto": "node src/cli/produtos.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "keywords": [
+    "web-scraping",
+    "price-monitor",
+    "supabase",
+    "postgresql",
+    "playwright",
+    "cheerio",
+    "nodejs"
+  ],
+  "author": "Jorge Felipe Santos Mendes",
+  "license": "MIT",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
+    "axios": "^1.21.1",
+    "cheerio": "^1.2.0",
+    "node-cron": "^4.6.0",
+    "nodemailer": "^10.5.0",
+    "pino": "^10.4.0",
+    "pino-pretty": "^13.2.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@vitest/coverage-v8": "^5.1.0",
+    "eslint": "^10.14.0",
+    "globals": "^17.14.0",
+    "prettier": "^3.9.10",
+    "vitest": "^5.1.0"
+  },
+  "optionalDependencies": {
+    "playwright": "^1.65.0"
+  }
+}

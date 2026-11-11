@@ -1,0 +1,4 @@
+# Garante finais de linha LF (padrão Linux/macOS) em todos os sistemas
+* text=auto eol=lf
+*.png binary
+*.jpg binary
